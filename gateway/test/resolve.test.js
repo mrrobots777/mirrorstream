@@ -73,21 +73,45 @@ test("preferida inexistente ou de tipo incompatível é ignorada (spec §5, caso
   assert.ok(r2.fontes.length > 1, "preferida de tipo incompatível é ignorada");
 });
 
-test("onda principal é no máximo 5 fontes na ORDEM do registro (spec §5, caso 2)", async () => {
+test("busca padrão consulta as nove fontes ativas elegíveis para TV", async () => {
   const r = await resolve(reqTv);
-  const esperado = fontes.elegiveis("tv").slice(0, 5).map((f) => f.chave);
-  assert.equal(r.fontes.length, 5);
+  const esperado = fontes.elegiveis("tv").map((f) => f.chave);
+  assert.equal(esperado.length, 9, "o registro atual tem nove fontes ativas para TV");
   assert.deepEqual(r.fontes, esperado, "é a ORDEM do registro, não rodízio");
 });
 
-test("onda vazia dispara reserva de até 5 ainda não consultadas (spec §5, caso 2)", async () => {
-  // chamaFonte devolve [] para os 5 primeiros da onda e lista para os próximos
-  const onda = fontes.elegiveis("tv").slice(0, 5).map((f) => f.chave);
-  const vazioNaOnda = async (chave) => { chamadas.push(chave); return onda.includes(chave) ? [] : [streamDe(chave)]; };
-  const r = await novoResolve(vazioNaOnda)(reqTv);
-  assert.ok(r.fontes.length > 5, `reserva não rodou: ${r.fontes}`);
-  assert.ok(r.streams.length > 0);
-  assert.equal(new Set(r.fontes).size, r.fontes.length, "nenhuma fonte consultada duas vezes");
+test("busca de filme consulta todas as sete fontes compatíveis", async () => {
+  const r = await resolve(req);
+  const esperado = fontes.elegiveis("movie").map((f) => f.chave);
+  assert.equal(esperado.length, 7, "duas fontes ativas são exclusivas de anime");
+  assert.deepEqual(r.fontes, esperado);
+});
+
+test("fonte que responde após 700 ms entra na resposta completa", async () => {
+  const esperado = fontes.elegiveis("tv").map((f) => f.chave);
+  const comDgoLenta = async (chave) => {
+    chamadas.push(chave);
+    if (chave === "dgo") {
+      await new Promise((res) => setTimeout(res, 850));
+      return [{ ...streamDe(chave), quality: "480p", title: "Legendado" }];
+    }
+    return [streamDe(chave)];
+  };
+  const r = await novoResolve(comDgoLenta, 2000)(reqTv);
+  assert.deepEqual(r.fontes, esperado);
+  assert.equal(r.cache, "MISS");
+  assert.ok(r.streams.some((s) => s.behaviorHints.bingeGroup === "mirrorstream:dgo"),
+            "o stream da última fonte não foi omitido após a antiga janela de graça");
+  assert.ok(r.streams.some((s) => s.quality === "480p"));
+});
+
+test("resposta vazia só é marcada depois de consultar todas as fontes elegíveis", async () => {
+  const sempreVazio = async (chave) => { chamadas.push(chave); return []; };
+  const esperado = fontes.elegiveis("tv").map((f) => f.chave);
+  const r = await novoResolve(sempreVazio)(reqTv);
+  assert.deepEqual(chamadas, esperado);
+  assert.deepEqual(r.fontes, esperado);
+  assert.deepEqual(r.streams, []);
 });
 
 test("preferida vazia aciona reserva de 2 (spec §5)", async () => {
@@ -118,15 +142,14 @@ test("resultado vazio é NEGATIVO na chamada seguinte (spec §11 caso 5)", async
 
 test("duas chamadas idênticas simultâneas executam cada fonte uma vez (spec §11 caso 6)", async () => {
   const [a, b] = await Promise.all([resolve(req), resolve(req)]);
-  assert.equal(chamadas.length, 5);      // 5 da onda, não 10
+  assert.equal(chamadas.length, fontes.elegiveis(req.tipo).length);
   assert.deepEqual(a, b);
 });
 
 test("além do orçamento responde PARCIAL e regrava o cache completo depois (spec §11 caso 7)", async () => {
-  // 4 fontes resolvem na hora, 1 demora orcaMs + 50 (orcaMs = 100 aqui: o caso
-  // não espera 6 s). A lenta (spc) devolve 1080p — qualidade distinta, para o
-  // stream dela sobreviver ao dedupe do agruparStreams e provar o CONTEÚDO
-  // regravado, não só o rótulo.
+  // Todas as fontes elegíveis da solicitação de filme são disparadas; a spc
+  // demora orcaMs + 50 (orcaMs = 100 aqui) e devolve 1080p, qualidade distinta
+  // que prova a regravação COMPLETA em background, não só a extensão do TTL.
   const chama = async (chave) => {
     chamadas.push(chave);
     if (chave === "spc") {
@@ -234,16 +257,13 @@ test("rejeição que não é Error também loga a fonte (não vira undefined)", 
   );
 });
 
-// ── onda de reserva com ORÇAMENTO ZERADO não dispara nada ───────────────────
-//
-// Quando o orçamento estoura, `restante()` devolve 0, o `Promise.race` da
-// `espera()` devolve `false` no mesmo tick — e mesmo assim o código disparava
-// a onda de reserva. As tarefas da reserva nunca entravam na resposta (não há
-// tempo de espera), então elas só existiam para gastar requisição nos painéis.
-// MEDIDO no BeamUp: 5 da onda + 4 da reserva = 9 chamadas por consulta lenta.
-test("sem orçamento restante a onda de reserva não dispara chamada nova", async () => {
+// ── mesmo com orçamento zerado, não há uma segunda onda na busca padrão ────
+// Todas as fontes elegíveis já foram disparadas na onda principal. O teste
+// impede regressão para chamadas duplicadas/inúteis após esgotar o orçamento.
+test("sem orçamento restante nenhuma fonte é disparada uma segunda vez", async () => {
   const lenta = async (chave) => { chamadas.push(chave); return new Promise(() => {}); };
   const r = await novoResolve(lenta, 100)(req);
   assert.deepEqual(r.streams, [], "sem orçamento não há stream");
-  assert.equal(chamadas.length, 5, `reserva disparou com orçamento zerado: ${chamadas}`);
+  assert.equal(chamadas.length, fontes.elegiveis(req.tipo).length);
+  assert.equal(new Set(chamadas).size, chamadas.length, "nenhuma fonte foi consultada duas vezes");
 });
