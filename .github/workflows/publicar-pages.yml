@@ -2,7 +2,9 @@ name: publicar-pages
 
 on:
   push:
-    branches: ["master", "main", "gh-pages"]
+    # Publicar só da branch padrão: snapshots antigos em `main`/`gh-pages`
+    # podem sobrescrever o manifesto mais recente do plugin no GitHub Pages.
+    branches: ["master"]
   workflow_dispatch:
   schedule:
     - cron: "17 */6 * * *"
