@@ -9,6 +9,18 @@ que **este arquivo e a memoria**: o que entrou, por que, e o que foi medido.
 > (nada de bundle publicado mudou); aqui a quebra existe para que cada passo tenha um `git
 > bisect` que aponte a mudanca, e nao o diff inteiro.
 
+## Cobertura completa das fontes no gateway — 10/10/2026
+
+- A busca padrão inicia todas as fontes saudáveis elegíveis em paralelo: **9 para TV e 7
+  para filme** no registro atual. O limite de cinco e a reserva padrão foram removidos; a
+  preferência explícita continua focada na fonte escolhida, com até duas alternativas se
+  ela vier vazia.
+- O gateway agora aguarda todas as tarefas até a conclusão ou o orçamento configurado, em
+  vez de devolver a primeira lista após 700 ms. Se fontes lentas ultrapassarem o orçamento,
+  responde `PARCIAL` e promove o cache quando as tarefas restantes concluírem.
+- Regressões cobertas por testes para nove fontes de TV, consulta vazia completa, resultado
+  posterior a 700 ms e limite de orçamento.
+
 ## Gateway MirrorStream no BeamUp — 10/10/2026
 
 A resolução saiu do aparelho e dos Workers da Cloudflare e passou a ser um serviço Node no

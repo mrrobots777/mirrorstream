@@ -176,27 +176,30 @@ A ordem é **`preferida` → saudável → `ORDEM` do registro**. O rodízio (`c
 `build.js`) é removido: ele existe para distribuir carga entre aparelhos, e no servidor
 essa imprevisibilidade não paga nada — o cache compartilhado já absorve a concentração.
 
-- **Onda principal:** até 5 fontes elegíveis, na ordem acima. Elegível é
-  `!f.tipos.length || f.tipos.includes(type)`, a mesma regra de `elegiveisDe()`.
+- **Onda principal sem preferência:** todas as fontes saudáveis elegíveis, na ordem acima,
+  disparadas em paralelo. Elegível é `!f.tipos.length || f.tipos.includes(type)`, a mesma
+  regra de `elegiveisDe()`. No registro atual isso representa 9 fontes para `tv` e 7 para
+  `movie`; uma fonte incompatível com o tipo nunca é chamada.
 - **`preferida` presente e elegível:** a onda principal é **só** ela (regra de
   `consultar()` hoje). Se ela devolver vazio, reserva de **2** fontes seguintes
   (`MAX_FONTES_FALLBACK_PREFERIDA`).
 - **`preferida` ausente, inexistente no registro ou de tipo incompatível:** é ignorada e a
   consulta segue como se não viesse — uma fonte desligada não pode transformar a
   resolução em vazio.
-- **Onda principal toda vazia:** reserva de até **5** fontes elegíveis ainda não
-  consultadas (`MAX_FONTES_POR_CONSULTA`).
+- Sem preferência, não há segunda onda: todas as fontes elegíveis já foram chamadas.
 
 ### Orçamento
 
 | constante | valor | origem |
 |---|---|---|
 | orçamento da resposta | **6000 ms** (env `MIRROR_ORCA_MS`, limitado a 1000–9000) | novo; o addon no Nuvio tem teto de 9 s |
-| graça após o primeiro resultado | 700 ms | `consultar()` atual |
 | timeout por fonte | 8000 ms | `TIMEOUT_FONTE` atual |
 | teto do `qualificaLista` | 5000 ms por lista | `detalhar` atual |
 
-O aparelho espera no máximo 8000 ms pelo `fetch` do gateway.
+O gateway aguarda todas as tarefas já disparadas até completar ou esgotar o orçamento; não
+retorna mais 700 ms após o primeiro player. O aparelho espera no máximo 8000 ms pelo `fetch`
+do gateway. Se o orçamento acabar antes de uma fonte lenta, a resposta é `PARCIAL` e o cache
+é promovido quando as tarefas terminarem.
 
 ### Fluxo de uma consulta
 
@@ -204,19 +207,20 @@ O aparelho espera no máximo 8000 ms pelo `fetch` do gateway.
 2. Verifica cache negativo → `NEGATIVO` e sai.
 3. Entra na fila de coalescimento: se já existe uma consulta idêntica em voo, reusa a
    mesma promessa.
-4. Dispara a onda principal. Cada tarefa: `getStreams()` do scraper → `qualificaLista()`
-   com teto de 5 s → marca `__mirrorSource` → sinaliza o primeiro resultado.
-5. Espera `todas | primeira + 700 ms | orçamento`.
+4. Dispara a onda principal: todas as elegíveis sem preferência ou somente a preferida.
+   Cada tarefa: `getStreams()` do scraper → `qualificaLista()` com teto de 5 s → marca
+   `__mirrorSource`.
+5. Espera todas as tarefas ou o orçamento restante, sem corte após o primeiro resultado.
 6. `agruparStreams()` sobre as listas recebidas → resposta (`MISS` ou `PARCIAL`).
-7. Se vazio, dispara a onda de reserva — **2** fontes se havia `preferida`, até **5** se
-   não havia — e repete o passo 5 com o orçamento restante.
+7. Se uma `preferida` válida ficou vazia e ainda há orçamento, dispara até **2** fontes de
+   reserva e repete o passo 5. Sem preferência, todas já foram consultadas.
 8. Em background, quando todas as tarefas terminarem, regrava o cache com o resultado
    completo — é o upgrade `PARCIAL → HIT` da próxima chamada.
 
 ### Enriquecimento
 
-`qualificaLista()` roda dentro da tarefa da fonte, antes do sinal do primeiro resultado,
-com teto de 5 s — idêntico ao `detalhar` de hoje (`MIRROR_QUALIDADE !== "nunca"`).
+`qualificaLista()` roda dentro da tarefa da fonte, com teto de 5 s — idêntico ao `detalhar`
+de hoje (`MIRROR_QUALIDADE !== "nunca"`).
 `MIRROR_QUALIDADE=nunca` desliga a sondagem de vídeo, como hoje.
 
 ## 6. Caches
@@ -347,7 +351,8 @@ plugin continua sendo exigido para passar.
 Casos obrigatórios:
 
 1. Ordem de prioridade: `preferida` → saudável → `ORDEM`.
-2. Onda principal limitada a 5; reserva de 5 dispara só quando a onda principal esvazia.
+2. Busca padrão chama todas as fontes elegíveis (9 para `tv`, 7 para `movie`) e espera até
+   concluir ou esgotar o orçamento; não há reserva padrão nem corte após o primeiro resultado.
 3. `preferida` sozinha na onda, reserva de 2 quando ela falha, e `preferida` inexistente ou
    de tipo incompatível sendo ignorada.
 4. Cache positivo completo → `HIT`, sem nova chamada de scraper.

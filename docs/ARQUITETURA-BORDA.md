@@ -5,7 +5,7 @@
 O caminho principal agora é resolvido na borda; o aparelho não consulta diretamente os painéis no primeiro acesso:
 
 1. O plugin envia `id + type + season + episode + preferida` para `GET /resolve-batch` do gateway MirrorStream no BeamUp — um serviço Node único, no lugar de um `/resolve-edge` por Worker.
-2. O gateway valida `id` e `type` **antes** de alcançar qualquer scraper, escolhe até 5 fontes saudáveis na ordem do registro (mais a onda de reserva se o resultado vier vazio) e executa os scrapers em Node, dentro de um orçamento de 6 s por consulta.
+2. O gateway valida `id` e `type` **antes** de alcançar qualquer scraper e inicia, em paralelo e na ordem do registro, todas as fontes saudáveis elegíveis para o tipo (atualmente nove para TV e sete para filme). Sem preferência explícita, aguarda todas até o orçamento de 6 s; se ele se esgotar, devolve `PARCIAL` e conclui o cache em background. Com preferência explícita vazia, pode tentar duas alternativas.
 3. O gateway agrega com `agruparStreams`, reescreve a URL de mídia para o relay e grava a resposta no cache em memória: 5 min no positivo completo, 15 s no parcial, 30 s no negativo.
 4. O plugin recebe `streams` prontos — agregados, com `behaviorHints.bingeGroup` e a URL do relay — e devolve ao app sem agregar de novo; o fetch tem teto de 8 s.
 5. O plugin não consulta mais os scrapers locais nem os Workers de resolução: sem gateway (ou estourado o teto), retorna vazio para evitar acesso direto às origens.
