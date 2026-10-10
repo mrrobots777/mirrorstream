@@ -1,0 +1,19 @@
+{
+  "name": "MirrorStream",
+  "version": "1.0.5",
+  "description": "MirrorStream — 9 fontes VOD ativas de anime, filme, série e dorama para o Nuvio",
+  "author": "MirrorStream",
+  "scrapers": [
+    {
+      "id": "mirrorstream",
+      "name": "MirrorStream",
+      "version": "1.0.5",
+      "filename": "mirrorstream.js",
+      "description": "Filmes, séries, animes e doramas — um player por qualidade",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ]
+    }
+  ]
+}

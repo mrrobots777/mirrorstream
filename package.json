@@ -1,0 +1,9 @@
+{
+  "name": "mirrorstream-gateway",
+  "private": true,
+  "description": "Gateway MirrorStream no BeamUp — servico de resolucao de streams do plugin",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node gateway/servidor.js"
+  }
+}

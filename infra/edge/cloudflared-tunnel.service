@@ -1,0 +1,34 @@
+[Unit]
+# O TUNEL DO ADDON (decisao 149). Roda com o token de execucao — NAO precisa de navegador e nao
+# precisa do cert.pem. O cert.pem so serviu para CRIAR o tunel.
+#
+# MEDIDO 01/10/2026: o endereco do cluster de TV no BeamUp perdeu o registro no DNS e passou a cair
+# no wildcard, sem aviso e sem erro no log. O addon nao tem como corrigir isso de dentro: o gateway
+# reescreve o Host para o nome do app, entao o codigo so sabe qual origem o dono pediu. Um endereco
+# que nao depende do DNS e o que evita repetir o episodio.
+Description=Cloudflare Tunnel do addon Mirror
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# TROQUE pelo token que `cloudflared tunnel token <id-do-tunel>` gera.
+# Gerado em 01/10/2026 para o tunel 75e655a3-0986-49a6-86b3-7416d3227bc6.
+# O token e o mesmo em qualquer maquina que rode este tunnel.
+ExecStart=/usr/local/bin/cloudflared --no-autoupdate tunnel --no-autoupdate run --token COLOQUE_AQUI_O_TOKEN
+Restart=always
+RestartSec=5s
+
+# O tunnel e' so uma conexao de SAIDA para a Cloudflare. Nao abre nenhuma porta.
+# Ainda assim nao deixa o processo mexer no sistema inteiro:
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

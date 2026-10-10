@@ -1,0 +1,101 @@
+name: publicar-pages
+
+on:
+  push:
+    branches: ["master", "main", "gh-pages"]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publicar-pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.publicar.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: plugin/package-lock.json
+      - name: instalar dependências
+        working-directory: plugin
+        run: npm ci --no-audit --no-fund
+      - name: gerar índice VOD dos painéis
+        working-directory: plugin
+        # A credencial dos painéis NÃO está no código (o repo é público). O gerador
+        # lê do ambiente — nomes iguais aos do `gateway/config.js`, então quem
+        # configura uma vez configura para os dois lados.
+        # MEDIDO 10/10/2026: sem estas linhas o passo falhou com
+        # `nenhuma fonte gerou shard` e o Pages não publicou — deixando NO AR o
+        # bundle antigo, que é justamente o que ainda tinha a credencial dentro.
+        env:
+          MIRROR_BLZ_USER: ${{ secrets.MIRROR_BLZ_USER }}
+          MIRROR_BLZ_PASS: ${{ secrets.MIRROR_BLZ_PASS }}
+          MIRROR_SPC_USER: ${{ secrets.MIRROR_SPC_USER }}
+          MIRROR_SPC_PASS: ${{ secrets.MIRROR_SPC_PASS }}
+        run: node tools/publicacao/gerar-indice.js
+      - name: build do plugin
+        working-directory: plugin
+        run: npm run build
+      - name: validar artefato
+        working-directory: plugin
+        run: |
+          test -s public/manifest.json
+          # O numero do manifesto e' lido do REGISTRO, nunca escrito a mao. MEDIDO 08/10/2026:
+          # o gate dizia `!== 7` e o registro ja tinha 10 — o deploy publicava 7 e o Nuvio
+          # recebia um manifesto que nao era o do build, sem ninguem notar. Comparar com
+          # `src/core/fontes` e' o que impede a divergencia de voltar: quem desativa uma
+          # fonte tem que mudar o codigo, e o gate so discorda se o build quebrou.
+          #
+          # O build tambem gera `index.html` e `.nojekyll` em `public/` (ver `plugin/build.js`).
+          # Sao eles que respondem na raiz do repositorio de plugins; sem eles a raiz dava 404
+          # mesmo com o manifesto no lugar.
+          #
+          # O gate tambem exige que todo bundle listado no manifesto exista em `public/`, que
+          # e' o que pega o `404` do `ise.js` na raiz: bundle no manifesto e ausente do
+          # artefato e' o unico jeito de o manifesto mentir sobre o que da para instalar.
+          node -e '
+            const m = require("./public/manifest.json");
+            const esperado = 1;
+            if (m.scrapers.length !== esperado || m.scrapers[0]?.id !== "mirrorstream") {
+              console.error(`manifesto deve declarar um único scraper mirrorstream; recebeu ${m.scrapers.length}`);
+              process.exit(1);
+            }
+            const ids = m.scrapers.map((s) => s.filename);
+            const faltando = ids.filter((n) => !require("fs").existsSync(`public/${n}`));
+            if (faltando.length) { console.error(`bundle ausente do artefato: ${faltando.join(", ")}`); process.exit(1); }
+            console.log(`manifesto: ${m.scrapers.length} scrapers, todos os bundles presentes`);
+          '
+      # A raiz do link e' o que o Nuvio pede ao adicionar o repositorio. MEDIDO 08/10:
+      # `https://mrrobots777.github.io/mirrorstream/` respondia 404 enquanto o
+      # `manifest.json` respondia 200 — o manifesto estava no lugar e o app ainda nao
+      # aceitava a URL. O `.nojekyll` impede o GitHub de reescrever `manifest.json` e
+      # `index.html`, o que ja publicou um manifesto envelopado em HTML antes.
+      # `index.html` e `.nojekyll` ja sao gerados por `npm run build` (plugin/build.js) —
+      # aqui so se VERIFICA que chegaram. Escrever de novo neste passo criaria duas fontes
+      # de verdade para a mesma coisa, e o dia que o build mudar o texto o workflow
+      # republicaria o antigo sem ninguem ver.
+      - name: conferir a raiz do repositorio de plugins
+        working-directory: plugin
+        run: |
+          test -s public/index.html
+          test -f public/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: plugin/public
+      - id: publicar
+        uses: actions/deploy-pages@v4

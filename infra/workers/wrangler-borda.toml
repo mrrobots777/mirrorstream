@@ -1,0 +1,49 @@
+# O WORKER DE BORDA — `mirror-borda`.
+#
+# Coloca os dois addons na borda da Cloudflare: o primeiro pedido de cada objeto paga a
+# origem, e todo o resto e' servido de um PoP perto de quem perguntou, sem tocar no Dokku.
+#
+# UM WORKER POR ADDON. O plano gratis da Cloudflare da cota POR WORKER (a mesma razao do
+# `deploy-workers.sh` fazer um worker por fonte), entao os dois addons nao podem compartilhar.
+# Para servir o outro, copie este arquivo, mude `name` e `ORIGEM`, e publique de novo.
+#
+# O config do worker GENERICO (proxy/relay das origens) e' o `wrangler-cdn.toml` deste mesmo
+# NAO e' o que o `deploy-workers.sh` usa — o script monta um config temporario por fonte.
+#
+# MEDIDO 02/10/2026, de dentro do Brasil (cf-ray GRU), ANTES do worker:
+#   /manifest.json                   865B   1,09s
+#   /meta/movie/tmdb:603.json        871B   0,60s
+#   /catalog/tv/mirror-tv-live.json  110KB  0,27s
+#   /api/channels                    140KB  0,45s
+#
+# O cache de borda da zona do BeamUp so guarda o JSON DEPOIS de a origem responder (e a zona
+# reescreve o `Cache-Control` para `max-age=14400`, decisao 140). O `/manifest.json`, que o
+# Stremio le na instalacao, era o mais lento: **1,09s**.
+#
+# O que NAO vai para a borda esta decidido em `classifica()`, no proprio worker, e cada regra
+# esta justificada em `test/worker-borda.test.js`. O resumo:
+#
+#   /stream/*, /api/streams/*, /nuvio/stream/*   NUNCA — sao links de video
+#   /catalog/*?date=...                          NUNCA — 1,1MB por dia (medido)
+#   qualquer resposta >= 400                     NUNCA — decisao 140
+#   /health, /metrics, /p2p/*                    NUNCA — mudam com o tempo
+#   rota desconhecida                             NUNCA — promessa de cache e' promessa
+#
+# DEPLOY
+#   npx wrangler deploy -c wrangler-borda.toml
+#   curl -s https://<worker>.workers.dev/__borda            # diagnostico, responde no PoP
+#   curl -sI https://<worker>.workers.dev/manifest.json | grep -i x-mirror
+#
+# Apos o deploy, o endereco do addon passa a ser o do worker. O do BeamUp continua valendo
+# (e' a ORIGEM), entao o rollback e' so trocar a URL de volta — nenhum dado se perde.
+
+name = "mirror-borda"
+main = "mirror-borda.mjs"
+compatibility_date = "2026-10-02"
+
+[observability]
+enabled = true
+
+[vars]
+# TROQUE pelo addon que este worker serve. Para o outro, mude `name` e aqui.
+ORIGEM = "https://e75602c18409-mirrorstream.baby-beamup.club"

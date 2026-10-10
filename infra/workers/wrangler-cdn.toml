@@ -1,0 +1,39 @@
+# O WORKER GENERICO — `mirror-cdn` e os 16 workers por fonte.
+#
+# ESTE ARQUIVO E REFERENCIA, E NAO E O QUE O `deploy-workers.sh` USA: o script monta um
+# config temporario POR FONTE (`.wrangler-<sigla>.toml`) e roda `wrangler deploy -c` nele,
+# porque o plano gratis da Cloudflare da cota POR WORKER (decisao 124) e um worker que estoura
+# derrubaria os outros 15. O `main` do wrangler e' resolvido a partir do diretorio do config,
+# entao o config temporario tem que ficar AO LADO do codigo.
+#
+# Para o WORKER DE BORDA (o que coloca os addons na borda), o config e' `wrangler-borda.toml`.
+#
+# ── O que este worker faz ──
+# Proxy/relay para as origens que recusam IP de datacenter:
+#   /proxy      busca uma origem pela URL
+#   /relay/s    relay de MP4, injetando o `Referer` que a origem exige
+#   /relay/m    relay de HLS, reescrevendo as URIs (inclusive as de dentro das tags)
+#   /rde/seg    segmento do RTD
+#
+# MEDIDO 02/10/2026 (decisao 152): proxy em Worker **nao resolve** o 403 das origens. Com
+# regiao fixada em `aws:sa-east-1` (e nao `mode = "smart"`, que o AGENTS ja dizia ser aceito e
+# nao aplicado nesta conta), `cdn10embed.xyz` e `cdn-sp2.satlabscloud.com.br` continuam
+# devolvendo `Upstream 403` — ou seja, **o 403 nao e' de geografia**. Nao gaste tempo com
+# placement: a video nao passa por Worker.
+
+name = "mirror-cdn"
+main = "mirror-cdn.js"
+compatibility_date = "2026-10-02"
+
+# REGIAO FIXA (decisao 123 e 152). Mantido aqui como registro da medicao: com o worker saindo
+# de lugar conhecido, um 403 da origem significa 403 da origem, e nao "saiu de algum lugar".
+# So o RTD recebe isto no deploy real — `deploy-workers.sh` escreve `[placement]` apenas
+# quando a fonte e' `rtd`.
+[placement]
+mode = "smart"
+region = "aws:sa-east-1"
+
+# Credencial: `CLOUDFLARE_API_TOKEN` ou `~/.cloudflare-token`. O token tem que ser DE CONTA —
+# o `/user/tokens/verify` responde "Invalid API Token" mesmo com um token bom.
+[observability]
+enabled = true

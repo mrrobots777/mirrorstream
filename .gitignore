@@ -1,0 +1,26 @@
+node_modules/
+**/node_modules/
+plugin/node_modules/
+plugin/dist/
+plugin/public/idx/
+mirrorstream/node_modules/
+mirrorview/node_modules/
+.opencode/
+cache/
+.cache/
+*.log
+dist/
+**/dist/
+*.db
+*.db-shm
+*.db-wal
+.env
+**/.env
+beamup.json
+*.wasm
+# SDD workspace (scratch: ledger, briefs, reports, review packages)
+.superpowers/
+
+# port Python: cache de bytecode (PYTHONDONTWRITEBYTECODE=1 no container)
+**/__pycache__/
+*.pyc

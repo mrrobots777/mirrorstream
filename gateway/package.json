@@ -1,0 +1,9 @@
+{
+  "name": "mirrorstream-gateway",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "node servidor.js"
+  }
+}

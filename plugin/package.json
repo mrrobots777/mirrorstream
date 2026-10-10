@@ -1,0 +1,20 @@
+{
+  "name": "mirrorstream-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MirrorStream — plugin Nuvio VOD: fontes de anime, filmes, séries e doramas",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "build": "node build.js",
+    "teste": "node teste.js",
+    "monitorar": "node tools/medicao/monitorar-fontes.js",
+    "sandbox": "node tools/validacao/simular-sandbox.js --sem-rede",
+    "sandbox:rede": "node tools/validacao/simular-sandbox.js",
+    "api": "node tools/publicacao/servidor-api.js",
+    "medir": "node tools/medicao/medir-rotas.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "javascript-obfuscator": "^5.9.0"
+  }
+}

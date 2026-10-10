@@ -1,0 +1,43 @@
+name: monitorar-fontes-vod
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  monitorar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: plugin/package-lock.json
+      - name: instalar dependências
+        working-directory: plugin
+        run: npm ci --no-audit --no-fund
+      - name: construir plugin
+        working-directory: plugin
+        run: npm run build
+      - name: monitorar fontes e gravar logs
+        working-directory: plugin
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          PROBE_MAX: "2"
+          MONITOR_TIMEOUT_MS: "65000"
+          MIRROR_EDGE_MODE: "auto"
+        run: npm run monitorar
+      - name: publicar logs como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoramento-fontes-${{ github.run_number }}
+          path: plugin/logs/*.json*
+          if-no-files-found: warn
+          retention-days: 14
