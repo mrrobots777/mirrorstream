@@ -3,65 +3,539 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090303">
-  <meta name="description" content="MirrorStream — repositório de plugins para Nuvio">
-  <title>MirrorStream — instalar no Nuvio</title>
+  <meta name="theme-color" content="#05040f">
+  <meta name="description" content="Instale o MirrorStream no Nuvio: filmes, séries e animes em um único plugin, com players organizados por qualidade.">
+  <title>MirrorStream — filmes, séries e animes no Nuvio</title>
   <style>
-    :root { color-scheme: dark; --bg: #090303; --panel: #160707; --red: #ff2638; --muted: #c9aeb0; --line: #3b1519; }
+    :root {
+      color-scheme: dark;
+      --bg: #05040e;
+      --surface: #090817;
+      --panel: #0c0a20;
+      --panel-strong: #100b2b;
+      --line: #211548;
+      --line-bright: #3b1b75;
+      --violet: #8b35ff;
+      --violet-bright: #ba68ff;
+      --pink: #ed62ff;
+      --text: #f6f1ff;
+      --muted: #bcb4d7;
+      --dim: #8981a7;
+      --content: 1220px;
+      --glow: 0 0 34px rgb(130 41 255 / 28%);
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; background: radial-gradient(circle at 50% -10%, #521216 0, #190608 36%, var(--bg) 72%); color: #fff; font: 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; min-height: 100vh; }
-    .wrap { width: min(100% - 32px, 980px); margin: auto; }
-    .hero { text-align: center; padding: 48px 0 34px; }
-    .logo { width: min(210px, 48vw); height: min(210px, 48vw); object-fit: cover; border-radius: 50%; box-shadow: 0 0 0 1px #7b232b, 0 0 52px #ff172d66; display: block; margin: 0 auto 24px; }
-    .eyebrow { color: #ff8490; text-transform: uppercase; letter-spacing: .18em; font-size: .76rem; font-weight: 700; }
-    .hero h1 { font-size: clamp(2.1rem, 7vw, 4.2rem); line-height: 1; margin: 12px 0; }
-    .hero p { color: var(--muted); max-width: 620px; margin: 16px auto; }
-    .card { background: #160707dd; border: 1px solid var(--line); border-radius: 22px; padding: 28px; box-shadow: 0 18px 70px #0008; margin: 0 auto 22px; max-width: 760px; }
-    .card h2 { margin: 0 0 10px; font-size: 1.35rem; }
-    .url { display: flex; gap: 10px; margin: 20px 0 8px; }
-    .url input { min-width: 0; flex: 1; background: #080303; border: 1px solid #5a2026; color: #fff; border-radius: 11px; padding: 13px; font: inherit; }
-    .button { border: 0; border-radius: 11px; background: var(--red); color: #fff; font-weight: 800; padding: 0 18px; cursor: pointer; white-space: nowrap; }
-    .button:hover { filter: brightness(1.15); }
-    ol { padding-left: 1.35rem; color: var(--muted); }
-    li { padding: 5px 0; }
-    strong { color: #fff; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .mini { border: 1px solid var(--line); border-radius: 15px; padding: 17px; background: #110505; }
-    .mini b { display: block; color: #ff6975; margin-bottom: 4px; }
-    .mini span { color: var(--muted); font-size: .92rem; }
-    footer { text-align: center; color: #8f7072; font-size: .84rem; padding: 10px 0 35px; }
-    a { color: #ff7a84; }
-    @media (max-width: 650px) { .hero { padding-top: 32px; } .card { padding: 21px; border-radius: 17px; } .url { display: block; } .url input { width: 100%; margin-bottom: 10px; } .button { width: 100%; height: 47px; } .grid { grid-template-columns: 1fr; } }
+    html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 72% 20%, rgb(65 16 143 / 18%), transparent 37rem),
+        radial-gradient(ellipse at 15% 48%, rgb(35 12 100 / 15%), transparent 32rem),
+        var(--bg);
+      color: var(--text);
+      font: 15px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid #d59cff; outline-offset: 4px; }
+    .container { width: min(var(--content), calc(100% - 64px)); margin-inline: auto; }
+    .icon { width: 23px; height: 23px; display: block; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+
+    .topbar {
+      position: relative;
+      z-index: 5;
+      border-bottom: 1px solid rgb(157 102 255 / 20%);
+      background: rgb(5 4 14 / 85%);
+      backdrop-filter: blur(18px);
+    }
+    .nav { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; flex-shrink: 0; font-size: 27px; font-weight: 780; letter-spacing: -.065em; }
+    .brand-mark { width: 34px; height: 42px; color: var(--violet-bright); filter: drop-shadow(0 0 13px rgb(170 66 255 / 70%)); }
+    .brand-word span { color: #aa4dff; }
+    .nav-links { display: flex; align-items: center; justify-content: center; gap: clamp(22px, 4.3vw, 55px); margin-left: auto; margin-right: auto; }
+    .nav-links a { position: relative; color: #ded8ee; font-size: 14px; transition: color .2s ease; }
+    .nav-links a::after { position: absolute; right: 0; bottom: -9px; left: 0; height: 2px; content: ""; background: linear-gradient(90deg, var(--violet), var(--pink)); transform: scaleX(0); transform-origin: left; transition: transform .22s ease; }
+    .nav-links a:hover, .nav-links a[aria-current="page"] { color: #fff; }
+    .nav-links a:hover::after, .nav-links a[aria-current="page"]::after { transform: scaleX(1); }
+    .nav-cta { display: inline-flex; align-items: center; gap: 9px; padding: 9px 17px; border: 1px solid #9a43ff; border-radius: 999px; color: #e8caff; box-shadow: inset 0 0 14px rgb(126 42 255 / 12%), 0 0 17px rgb(126 42 255 / 11%); font-size: 13px; font-weight: 650; white-space: nowrap; transition: background .2s ease, box-shadow .2s ease, transform .2s ease; }
+    .nav-cta:hover { background: rgb(126 42 255 / 19%); box-shadow: var(--glow); transform: translateY(-1px); }
+    .nav-cta .icon { width: 18px; height: 18px; }
+
+    .hero {
+      position: relative;
+      isolation: isolate;
+      min-height: 448px;
+      border-bottom: 1px solid rgb(109 55 213 / 30%);
+      background:
+        linear-gradient(130deg, transparent 54%, rgb(107 36 228 / 12%) 54.1%, transparent 54.5%),
+        radial-gradient(ellipse at 81% 50%, rgb(75 20 159 / 23%), transparent 40rem);
+    }
+    .hero::before, .hero::after { position: absolute; z-index: -1; height: 1px; content: ""; pointer-events: none; background: linear-gradient(90deg, transparent, #5525bb, transparent); }
+    .hero::before { top: 25%; left: 0; width: 37%; transform: rotate(-28deg); transform-origin: left; opacity: .55; }
+    .hero::after { right: 0; bottom: 17%; width: 46%; transform: rotate(-25deg); transform-origin: right; opacity: .42; }
+    .hero-grid { min-height: 448px; display: grid; grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr); align-items: center; gap: 25px; padding-block: 39px 36px; }
+    .hero-copy { position: relative; z-index: 1; padding-block: 14px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: #c587ff; font-size: 11px; font-weight: 760; letter-spacing: .2em; text-transform: uppercase; }
+    .eyebrow::before { width: 21px; height: 1px; content: ""; background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+    h1 { margin: 10px 0 2px; font-size: clamp(3.2rem, 6.8vw, 5.2rem); line-height: .99; letter-spacing: -.078em; }
+    .gradient-word { background: linear-gradient(105deg, #8029ff 5%, #c05dff 65%, #ef7aff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero-subtitle { margin: 12px 0 11px; color: #e3dcf3; font-size: clamp(18px, 2vw, 22px); font-weight: 560; letter-spacing: -.035em; }
+    .hero-description { max-width: 520px; margin: 0; color: #c5bddb; font-size: 15px; line-height: 1.7; }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 19px; margin-top: 23px; }
+    .button-primary { min-height: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 0 22px; border: 0; border-radius: 17px; background: linear-gradient(110deg, #731eff, #9e39ff 64%, #6d1eff); color: #fff; box-shadow: 0 8px 28px rgb(111 28 255 / 30%), inset 0 1px 0 rgb(255 255 255 / 22%); font-size: 14px; font-weight: 760; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, filter .2s ease; }
+    .button-primary:hover { box-shadow: 0 12px 35px rgb(126 42 255 / 46%), inset 0 1px 0 rgb(255 255 255 / 25%); filter: brightness(1.08); transform: translateY(-2px); }
+    .button-primary .icon { width: 20px; height: 20px; }
+    .text-link { display: inline-flex; align-items: center; gap: 8px; color: #c07bff; font-size: 13px; font-weight: 610; transition: color .18s ease; }
+    .text-link:hover { color: #e8c4ff; }
+    .text-link .icon { width: 16px; height: 16px; }
+
+    .showcase { position: relative; min-width: 0; perspective: 1200px; }
+    .showcase::before { position: absolute; z-index: -1; inset: 17% 3% -8%; border-radius: 50%; content: ""; background: #701aff; filter: blur(86px); opacity: .22; }
+    .showcase-frame { position: relative; padding: 9px; border: 1px solid #8542ef; border-radius: 13px; background: linear-gradient(145deg, #17102b, #070610 40%, #17102b); box-shadow: 0 17px 48px #000a, 0 0 23px rgb(123 46 255 / 25%), inset 0 1px 0 rgb(255 255 255 / 12%); transform: rotateY(-5deg) rotateX(1deg); }
+    .showcase-frame::before { position: absolute; top: -2px; right: 10%; left: 10%; height: 1px; content: ""; background: linear-gradient(90deg, transparent, #dc9aff, transparent); }
+    .app-window { min-height: 276px; display: grid; grid-template-columns: 121px minmax(0, 1fr); overflow: hidden; border: 1px solid #21163d; border-radius: 7px; background: #060611; }
+    .app-sidebar { padding: 12px 9px; border-right: 1px solid #171126; background: linear-gradient(180deg, #0c0a18, #07070f); }
+    .app-brand { display: flex; align-items: center; gap: 5px; margin: 1px 0 15px; color: #f7f0ff; font-size: 10px; font-weight: 760; letter-spacing: -.04em; white-space: nowrap; }
+    .app-brand .brand-mark { width: 12px; height: 15px; }
+    .side-menu { display: grid; gap: 3px; }
+    .side-item { display: flex; align-items: center; gap: 8px; padding: 6px 7px; border-radius: 5px; color: #c5bfd5; font-size: 9px; }
+    .side-item .icon { width: 13px; height: 13px; }
+    .side-item.active { background: linear-gradient(100deg, #291157, #141027); color: #eacaff; }
+    .app-content { min-width: 0; padding: 12px 12px 11px; }
+    .screen-banner { position: relative; height: 80px; overflow: hidden; border: 1px solid #281255; border-radius: 6px; background: radial-gradient(ellipse at 69% 65%, #b354f4 0, transparent 28%), linear-gradient(130deg, #150b39 6%, #39108b 39%, #171043 67%, #08091b); }
+    .screen-banner::before { position: absolute; right: 8%; bottom: -7px; width: 43%; height: 73%; content: ""; background: linear-gradient(155deg, transparent 0 25%, #100b27 26% 56%, transparent 57%), linear-gradient(110deg, transparent 0 42%, #0b0a1d 43% 74%, transparent 75%); clip-path: polygon(50% 0, 57% 25%, 100% 0, 75% 40%, 98% 60%, 70% 59%, 58% 100%, 43% 63%, 9% 74%, 36% 44%, 0 29%, 39% 30%); opacity: .9; }
+    .screen-banner::after { position: absolute; right: 13%; bottom: 14px; width: 9px; height: 28px; content: ""; border-radius: 80% 20% 0 0; background: #080719; box-shadow: -8px 7px 0 -2px #080719, 8px 7px 0 -2px #080719; }
+    .banner-label { position: absolute; bottom: 8px; left: 11px; z-index: 1; color: #f6eaff; font-size: 8px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 2px 10px #08030e; }
+    .category-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 9px; }
+    .category-tile { min-height: 60px; display: grid; place-items: center; gap: 2px; align-content: center; border: 1px solid #342064; border-radius: 6px; background: linear-gradient(150deg, #17102d, #0b091a); color: #d9b4ff; }
+    .category-tile:first-child { border-color: #782cff; background: linear-gradient(145deg, #4911a3, #1a0c3c); box-shadow: inset 0 0 19px rgb(128 42 255 / 20%); }
+    .category-tile .icon { width: 20px; height: 20px; color: #cb7aff; }
+    .category-tile span { color: #f2eaff; font-size: 8px; }
+    .shelf-label { margin: 8px 0 5px; color: #e3d9f4; font-size: 9px; font-weight: 650; }
+    .poster-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .poster { position: relative; height: 47px; overflow: hidden; border: 1px solid rgb(229 187 255 / 18%); border-radius: 4px; background: linear-gradient(165deg, #ffb461, #a94360 48%, #171328); }
+    .poster::before { position: absolute; bottom: -11px; left: 36%; width: 24px; height: 40px; border-radius: 46% 46% 8% 8%; content: ""; background: linear-gradient(#1a122c 0 20%, #27203e 21%); box-shadow: -8px 9px 0 -3px #171226, 8px 8px 0 -3px #171226; }
+    .poster:nth-child(2) { background: linear-gradient(150deg, #76daea, #2056ac 45%, #15142f); }
+    .poster:nth-child(3) { background: linear-gradient(145deg, #f987d2, #a33497 42%, #19112e); }
+    .poster:nth-child(4) { background: linear-gradient(155deg, #ffcb67, #b54458 45%, #160d2c); }
+    .poster:nth-child(5) { background: linear-gradient(145deg, #55bdd3, #48339c 49%, #100d28); }
+    .device-stand { width: 43%; height: 7px; margin: 0 auto; border-radius: 0 0 60% 60%; background: linear-gradient(90deg, #110829, #6141a3, #150b29); box-shadow: 0 7px 18px #8e33ff55; }
+    .bolt-float { position: absolute; z-index: 2; color: #982fff; filter: drop-shadow(0 0 14px rgb(136 38 255 / 75%)); animation: float 5s ease-in-out infinite; }
+    .bolt-float .brand-mark { width: 36px; height: 44px; }
+    .bolt-one { top: 5%; right: -3%; }
+    .bolt-two { bottom: 5%; left: -5%; animation-delay: -2.4s; }
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
+
+    .features { border-bottom: 1px solid rgb(73 38 137 / 35%); background: rgb(4 4 12 / 72%); }
+    .feature-grid { display: grid; grid-template-columns: repeat(4, 1fr); padding-block: 27px; }
+    .feature { min-height: 112px; padding: 1px 27px 0; border-right: 1px solid #171329; }
+    .feature:first-child { padding-left: 4px; }
+    .feature:last-child { border-right: 0; }
+    .feature-icon { width: 46px; height: 46px; display: grid; place-items: center; margin-bottom: 7px; border-radius: 15px; background: radial-gradient(circle, rgb(101 29 213 / 35%), transparent 72%); color: #c65dff; filter: drop-shadow(0 0 12px rgb(152 51 255 / 45%)); }
+    .feature-icon .icon { width: 28px; height: 28px; }
+    .feature h2 { margin: 0 0 4px; font-size: 14px; font-weight: 680; letter-spacing: -.02em; }
+    .feature p { max-width: 230px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    .details { padding-block: 23px 28px; border-bottom: 1px solid rgb(73 38 137 / 35%); }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1.02fr 1fr; align-items: stretch; gap: 18px; }
+    .panel { min-width: 0; border: 1px solid #20163e; border-radius: 14px; background: linear-gradient(145deg, rgb(15 11 37 / 97%), rgb(6 6 18 / 97%)); box-shadow: 0 12px 33px rgb(0 0 0 / 20%), inset 0 1px 0 rgb(194 143 255 / 4%); }
+    .panel-inner { padding: 18px; }
+    .panel-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; }
+    .panel-icon { width: 44px; height: 44px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid rgb(161 75 255 / 33%); border-radius: 50%; background: linear-gradient(145deg, #391076, #140a31); color: #d479ff; box-shadow: 0 0 22px rgb(120 39 255 / 20%); }
+    .panel-icon .icon { width: 22px; height: 22px; }
+    .panel-heading h2 { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.035em; }
+    .panel-heading p { margin: 4px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .install-steps { display: grid; gap: 10px; margin: 15px 0 17px; padding: 0; list-style: none; }
+    .install-steps li { display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 11px; color: #d8d1e9; font-size: 12px; line-height: 1.55; }
+    .step-number { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #7026d3; border-radius: 50%; background: linear-gradient(145deg, #341078, #13092c); color: #fff; box-shadow: 0 0 13px rgb(104 36 213 / 18%); font-size: 13px; font-weight: 730; }
+    .copy-bar { width: 100%; min-height: 49px; display: flex; align-items: center; justify-content: space-between; gap: 9px; padding: 8px 11px 8px 13px; border: 1px solid #4e218f; border-radius: 10px; background: linear-gradient(100deg, #170d39, #251052); color: #f3e9ff; text-align: left; cursor: pointer; transition: border-color .2s ease, background .2s ease, transform .2s ease; }
+    .copy-bar:hover { border-color: #a958ff; background: linear-gradient(100deg, #21104d, #36116c); transform: translateY(-1px); }
+    .copy-label { display: inline-flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 630; }
+    .copy-label .icon { width: 18px; height: 18px; color: #d069ff; }
+    .copy-bar > .icon { width: 18px; height: 18px; color: #d069ff; }
+    .url-box { display: flex; align-items: center; gap: 9px; min-width: 0; margin-top: 16px; padding: 9px; border: 1px solid #2e2053; border-radius: 10px; background: #080713; }
+    .url-value { min-width: 0; flex: 1; overflow: hidden; color: #e4dbf8; font: 11px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+    .copy-icon { width: 34px; height: 34px; display: grid; flex: 0 0 auto; place-items: center; border: 1px solid #52219b; border-radius: 8px; background: #241049; color: #d37cff; cursor: pointer; transition: background .2s ease, transform .2s ease; }
+    .copy-icon:hover { background: #42157f; transform: translateY(-1px); }
+    .copy-icon .icon { width: 17px; height: 17px; }
+    .notice { display: grid; grid-template-columns: 25px 1fr; gap: 10px; margin-top: 13px; padding: 13px; border: 1px solid #39206c; border-radius: 10px; background: linear-gradient(110deg, rgb(37 17 80 / 88%), rgb(17 11 39 / 96%)); }
+    .notice > .icon { width: 21px; height: 21px; color: #c977ff; }
+    .notice strong { display: block; margin-bottom: 3px; color: #ddaaff; font-size: 12px; }
+    .notice p { margin: 0; color: #ccc2e3; font-size: 11px; line-height: 1.55; }
+    .how-card { margin-top: 12px; }
+    .how-card .panel-inner { padding-block: 14px; }
+    .how-card .panel-heading { margin-bottom: 7px; }
+    .how-card > p { margin: 0; color: #c8c0dd; font-size: 11px; line-height: 1.6; }
+    .category-list { display: grid; gap: 8px; margin-top: 12px; }
+    .category-row { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 11px; padding-bottom: 8px; border-bottom: 1px solid #18142b; }
+    .category-row:last-child { padding-bottom: 0; border-bottom: 0; }
+    .category-art { position: relative; height: 56px; overflow: hidden; border: 1px solid rgb(220 161 255 / 16%); border-radius: 8px; background: linear-gradient(145deg, #ffa85d, #bd4266 46%, #231238); }
+    .category-art::before { position: absolute; bottom: -10px; left: 37%; width: 23px; height: 50px; border-radius: 45% 45% 4px 4px; content: ""; background: linear-gradient(#171124 0 17%, #32234a 18%); box-shadow: -11px 11px 0 -4px #171124, 10px 9px 0 -3px #171124; }
+    .category-art.series { background: linear-gradient(145deg, #80e7f3, #3369d7 47%, #17122e); }
+    .category-art.anime { background: linear-gradient(145deg, #f692e0, #a44add 44%, #17112d); }
+    .category-art.anime::before { width: 19px; background: linear-gradient(#24152e 0 15%, #482848 16%); }
+    .category-description strong { display: block; margin-bottom: 2px; color: #f0eaff; font-size: 11px; }
+    .category-description span { display: block; color: #bcb3d2; font-size: 10px; line-height: 1.45; }
+    .donation-panel { margin-top: 12px; }
+    .donation-panel .panel-inner { padding-block: 14px; }
+    .donation-panel .panel-heading { margin-bottom: 8px; }
+    .donation-panel > .panel-inner > p { margin: 0 0 11px; color: #c8c0dd; font-size: 10px; line-height: 1.55; }
+    .donate-button { width: 100%; min-height: 43px; display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid #b481ff; border-radius: 999px; background: linear-gradient(100deg, #d9baff, #9331ff 75%); color: #18092e; box-shadow: 0 6px 22px rgb(153 58 255 / 23%); font-size: 13px; font-weight: 790; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+    .donate-button:hover { box-shadow: 0 8px 26px rgb(153 58 255 / 35%); transform: translateY(-1px); }
+    .donate-button .icon { width: 18px; height: 18px; }
+    .donation-note { margin: 6px 0 0 !important; color: #a99bc3 !important; font-size: 9px !important; text-align: center; }
+    .status { min-height: 18px; margin: 8px 0 0; color: #d9a8ff; font-size: 11px; }
+
+    footer { padding: 21px 0 24px; }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+    .footer-brand { display: grid; gap: 2px; }
+    .footer-brand .brand { font-size: 19px; }
+    .footer-brand .brand-mark { width: 25px; height: 31px; }
+    .footer-brand p { margin: 0; color: #9f96b8; font-size: 10px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 22px; color: #bdb4d2; font-size: 11px; }
+    .footer-links a:hover, .footer-icons a:hover { color: #e1baff; }
+    .footer-icons { display: flex; align-items: center; gap: 16px; color: #bbb3d0; }
+    .footer-icons .icon { width: 17px; height: 17px; }
+    .version { margin-left: 9px; color: #9b92b1; font-size: 10px; }
+
+    @media (min-width: 1500px) {
+      .hero-grid, .hero { min-height: 485px; }
+      .app-window { min-height: 300px; }
+      .screen-banner { height: 91px; }
+    }
+    @media (max-width: 900px) {
+      .container { width: min(100% - 42px, var(--content)); }
+      .nav { gap: 18px; }
+      .brand { font-size: 23px; }
+      .nav-links { gap: 20px; }
+      .hero-grid { grid-template-columns: minmax(0, .93fr) minmax(0, 1.07fr); gap: 15px; }
+      h1 { font-size: clamp(3rem, 7vw, 4.2rem); }
+      .app-window { grid-template-columns: 98px minmax(0, 1fr); min-height: 252px; }
+      .feature { padding-inline: 18px; }
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+      .install-panel { grid-row: span 2; }
+      .category-panel { grid-column: 2; }
+    }
+    @media (max-width: 650px) {
+      html { scroll-padding-top: 76px; }
+      .container { width: min(100% - 34px, var(--content)); }
+      .nav { min-height: 68px; flex-wrap: wrap; gap: 10px; padding-block: 11px; }
+      .brand { gap: 8px; font-size: 21px; }
+      .brand-mark { width: 28px; height: 34px; }
+      .nav-cta { padding: 8px 12px; font-size: 11px; }
+      .nav-cta .icon { width: 16px; height: 16px; }
+      .nav-links { order: 3; width: 100%; justify-content: space-between; gap: 12px; margin: 1px 0 0; padding: 5px 0 2px; }
+      .nav-links a { font-size: 11px; }
+      .nav-links a::after { bottom: -6px; }
+      .hero-grid { min-height: 0; grid-template-columns: 1fr; gap: 23px; padding-block: 37px 33px; }
+      .hero-copy { padding: 0; }
+      h1 { font-size: clamp(3rem, 13.2vw, 4.6rem); }
+      .hero-subtitle { max-width: 370px; font-size: 18px; }
+      .hero-description { font-size: 13px; }
+      .hero-actions { gap: 14px; margin-top: 19px; }
+      .button-primary { min-height: 48px; padding-inline: 16px; border-radius: 14px; font-size: 12px; }
+      .text-link { font-size: 12px; }
+      .showcase { width: min(100%, 470px); margin-inline: auto; }
+      .showcase-frame { transform: none; }
+      .app-window { grid-template-columns: 83px minmax(0, 1fr); min-height: 235px; }
+      .app-sidebar { padding-inline: 6px; }
+      .side-item { gap: 5px; padding-inline: 5px; font-size: 8px; }
+      .side-item .icon { width: 12px; height: 12px; }
+      .app-content { padding: 9px; }
+      .screen-banner { height: 66px; }
+      .category-tile { min-height: 53px; }
+      .poster { height: 38px; }
+      .bolt-one { right: -4%; }
+      .bolt-two { left: -4%; }
+      .features .container { width: min(100% - 34px, var(--content)); }
+      .feature-grid { grid-template-columns: 1fr 1fr; gap: 0; padding-block: 14px; }
+      .feature { min-height: 124px; padding: 11px 14px 13px; border-right: 1px solid #171329; border-bottom: 1px solid #171329; }
+      .feature:first-child { padding-left: 9px; }
+      .feature:nth-child(2) { border-right: 0; }
+      .feature:nth-child(n+3) { border-bottom: 0; }
+      .feature:nth-child(3) { padding-left: 9px; }
+      .feature-icon { width: 39px; height: 39px; margin-bottom: 4px; }
+      .feature-icon .icon { width: 24px; height: 24px; }
+      .feature h2 { font-size: 12px; }
+      .feature p { font-size: 10px; }
+      .details { padding-block: 17px 22px; }
+      .detail-grid { grid-template-columns: 1fr; gap: 12px; }
+      .install-panel { grid-row: auto; }
+      .category-panel { grid-column: auto; }
+      .panel-inner { padding: 16px; }
+      .footer-row { align-items: flex-start; flex-wrap: wrap; gap: 14px 20px; }
+      .footer-brand { width: calc(100% - 110px); }
+      .footer-links { order: 3; width: 100%; justify-content: space-between; gap: 10px; padding-top: 8px; border-top: 1px solid #171329; font-size: 10px; }
+      .footer-icons { margin-left: auto; gap: 12px; }
+    }
+    @media (max-width: 370px) {
+      .nav { gap: 7px; }
+      .brand { font-size: 19px; }
+      .nav-cta { gap: 6px; padding-inline: 9px; }
+      .nav-links a { font-size: 10px; }
+      .app-window { grid-template-columns: 73px minmax(0, 1fr); }
+      .category-row { grid-template-columns: 70px 1fr; }
+      .hero-actions { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="hero">
-      <img class="logo" src="logo.png" alt="Logo MirrorStream">
-      <div class="eyebrow">Plugin para Nuvio</div>
-      <h1>MirrorStream</h1>
-      <p>Filmes, séries, animes e doramas em um único repositório, com players organizados por qualidade.</p>
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+    <symbol id="icon-bolt" viewBox="0 0 40 52"><path fill="currentColor" stroke="none" d="M23.7 1 3 28.1h13.2L13.8 51 37 20.7H23.3L27 1z"/></symbol>
+    <symbol id="icon-cloud" viewBox="0 0 24 24"><path d="M7 18h10.5a4.5 4.5 0 0 0 .5-9 6.5 6.5 0 0 0-12.3-1.5A5.3 5.3 0 0 0 7 18Z"/><path d="M12 16V10m0 0-2.5 2.5M12 10l2.5 2.5"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h13m-5-5 5 5-5 5"/></symbol>
+    <symbol id="icon-down" viewBox="0 0 24 24"><path d="M12 4v15m-6-6 6 6 6-6"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></symbol>
+    <symbol id="icon-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v4m5-4v4m5-4v4M7 16v4m5-4v4m5-4v4M3 9h18"/></symbol>
+    <symbol id="icon-tv" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="m8 3 4 3 4-3M8 22h8m-4-3v3"/></symbol>
+    <symbol id="icon-anime" viewBox="0 0 24 24"><path d="M12 3c5.2 0 8 3.9 8 9 0 5.7-3.5 9-8 9s-8-3.3-8-9c0-5.1 2.8-9 8-9Z"/><path d="M8 10h.01M16 10h.01M9 15c1.8 1.4 4.2 1.4 6 0M4.5 7.5 2 5m17.5 2.5L22 5"/></symbol>
+    <symbol id="icon-quality" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-7z"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="icon-devices" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="icon-code" viewBox="0 0 24 24"><path d="m8 5-6 7 6 7m8-14 6 7-6 7m-2-16-4 18"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 11v5m0-8h.01"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19.4 15 .1.1 1.1 1.9-2 3.4-2.2-.6a8 8 0 0 1-1.8 1l-.4 2.2h-4l-.4-2.2a8 8 0 0 1-1.8-1l-2.2.6-2-3.4L5 15a8 8 0 0 1 0-2l-1.2-1.1 2-3.4 2.2.6a8 8 0 0 1 1.8-1L10.2 6h4l.4 2.2a8 8 0 0 1 1.8 1l2.2-.6 2 3.4-1.1 1.1a8 8 0 0 1-.1 1.9Z" transform="translate(0 -2) scale(.92)"/></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></symbol>
+    <symbol id="icon-heart" viewBox="0 0 24 24"><path d="M20.8 8.6c0 5.1-8.8 11.1-8.8 11.1S3.2 13.7 3.2 8.6A4.6 4.6 0 0 1 12 6.4a4.6 4.6 0 0 1 8.8 2.2Z"/></symbol>
+    <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+    <symbol id="icon-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M20 5a18 18 0 0 0-4.5-1.4l-.3.6a16 16 0 0 0-6.4 0l-.3-.6A18 18 0 0 0 4 5a18 18 0 0 0-3 12.4A18 18 0 0 0 6.5 20l1-1.7a12 12 0 0 1-1.6-.8l.4-.3a13 13 0 0 0 11.4 0l.4.3a12 12 0 0 1-1.6.8l1 1.7a18 18 0 0 0 5.5-2.6A18 18 0 0 0 20 5Z"/><path d="M8.5 13h.01M15.5 13h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#inicio" aria-label="MirrorStream — início">
+        <svg class="brand-mark" aria-hidden="true"><use href="#icon-bolt"/></svg>
+        <span class="brand-word">Mirror<span>Stream</span></span>
+      </a>
+      <nav class="nav-links" aria-label="Navegação principal">
+        <a href="#inicio" aria-current="page">Início</a>
+        <a href="#instalacao">Instalação</a>
+        <a href="#conteudo">Conteúdo</a>
+        <a href="#doacao">Doação</a>
+      </nav>
+      <a class="nav-cta" href="#instalacao">
+        <svg class="icon" aria-hidden="true"><use href="#icon-cloud"/></svg>
+        Instalar Plugin
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Seu streaming, sem limites</div>
+          <h1 id="hero-title">Mirror<span class="gradient-word">Stream</span></h1>
+          <p class="hero-subtitle">Filmes, séries e animes em um só lugar.</p>
+          <p class="hero-description">O MirrorStream é um plugin para o Nuvio que reúne filmes, séries, animes e doramas em uma experiência simples, com fontes agregadas e players organizados por qualidade.</p>
+          <div class="hero-actions">
+            <a class="button-primary" href="#instalacao">
+              <svg class="icon" aria-hidden="true"><use href="#icon-cloud"/></svg>
+              Instalar Plugin no Nuvio
+              <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg>
+            </a>
+            <a class="text-link" href="#instalacao">Saiba mais sobre o plugin <svg class="icon" aria-hidden="true"><use href="#icon-down"/></svg></a>
+          </div>
+        </div>
+
+        <div class="showcase" aria-label="Prévia ilustrativa da interface de conteúdo do MirrorStream">
+          <span class="bolt-float bolt-one" aria-hidden="true"><svg class="brand-mark"><use href="#icon-bolt"/></svg></span>
+          <span class="bolt-float bolt-two" aria-hidden="true"><svg class="brand-mark"><use href="#icon-bolt"/></svg></span>
+          <div class="showcase-frame">
+            <div class="app-window">
+              <aside class="app-sidebar" aria-label="Prévia do menu">
+                <div class="app-brand"><svg class="brand-mark" aria-hidden="true"><use href="#icon-bolt"/></svg>MirrorStream</div>
+                <div class="side-menu">
+                  <div class="side-item active"><svg class="icon" aria-hidden="true"><use href="#icon-grid"/></svg>Início</div>
+                  <div class="side-item"><svg class="icon" aria-hidden="true"><use href="#icon-film"/></svg>Filmes</div>
+                  <div class="side-item"><svg class="icon" aria-hidden="true"><use href="#icon-tv"/></svg>Séries</div>
+                  <div class="side-item"><svg class="icon" aria-hidden="true"><use href="#icon-anime"/></svg>Animes</div>
+                  <div class="side-item"><svg class="icon" aria-hidden="true"><use href="#icon-heart"/></svg>Favoritos</div>
+                  <div class="side-item"><svg class="icon" aria-hidden="true"><use href="#icon-settings"/></svg>Configurações</div>
+                </div>
+              </aside>
+              <div class="app-content">
+                <div class="screen-banner"><span class="banner-label">Uma nova aventura começa aqui</span></div>
+                <div class="category-tiles">
+                  <div class="category-tile"><svg class="icon" aria-hidden="true"><use href="#icon-film"/></svg><span>Filmes</span></div>
+                  <div class="category-tile"><svg class="icon" aria-hidden="true"><use href="#icon-tv"/></svg><span>Séries</span></div>
+                  <div class="category-tile"><svg class="icon" aria-hidden="true"><use href="#icon-anime"/></svg><span>Animes</span></div>
+                </div>
+                <div class="shelf-label">Em alta</div>
+                <div class="poster-row" aria-hidden="true"><div class="poster"></div><div class="poster"></div><div class="poster"></div><div class="poster"></div><div class="poster"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="device-stand" aria-hidden="true"></div>
+        </div>
+      </div>
     </section>
-    <section class="card">
-      <h2>Instalar no Nuvio</h2>
-      <p>Copie o endereço abaixo e adicione-o como repositório de plugins dentro do aplicativo.</p>
-      <div class="url"><input id="repo" readonly value="https://mrrobots777.github.io/mirrorstream/"><button class="button" onclick="copiar()">Copiar URL</button></div>
-      <small id="status" aria-live="polite"></small>
-      <ol><li>Abra o <strong>Nuvio</strong> e entre nas configurações de plugins.</li><li>Escolha <strong>Adicionar repositório</strong>.</li><li>Cole a URL, confirme e atualize a lista de plugins.</li></ol>
+
+    <section class="features" aria-label="Destaques do MirrorStream">
+      <div class="container feature-grid">
+        <article class="feature">
+          <div class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#icon-play"/></svg></div>
+          <h2>Conteúdo variado</h2>
+          <p>Filmes, séries, animes e doramas em um só plugin.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#icon-quality"/></svg></div>
+          <h2>Players por qualidade</h2>
+          <p>Opções organizadas por resolução para facilitar a escolha.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#icon-shield"/></svg></div>
+          <h2>Fácil de instalar</h2>
+          <p>Adicione o repositório no Nuvio em poucos passos.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#icon-devices"/></svg></div>
+          <h2>Feito para o Nuvio</h2>
+          <p>Um plugin agregado, pronto para usar no seu aplicativo.</p>
+        </article>
+      </div>
     </section>
-    <section class="grid">
-      <div class="mini"><b>Um único plugin</b><span>O Nuvio exibe o MirrorStream como uma fonte única.</span></div>
-      <div class="mini"><b>Por qualidade</b><span>Players são agrupados em 480p, 720p, 1080p e outras resoluções.</span></div>
-      <div class="mini"><b>Atualizado automaticamente</b><span>A página e o manifesto são publicados pelo GitHub Pages.</span></div>
+
+    <section class="details" aria-label="Instalação e informações do plugin">
+      <div class="container detail-grid">
+        <article class="panel install-panel" id="instalacao">
+          <div class="panel-inner">
+            <div class="panel-heading">
+              <div class="panel-icon"><svg class="icon" aria-hidden="true"><use href="#icon-cloud"/></svg></div>
+              <div><h2>Instalação no Nuvio</h2><p>Siga o passo a passo para adicionar o MirrorStream ao seu Nuvio.</p></div>
+            </div>
+            <ol class="install-steps">
+              <li><span class="step-number">1</span><span>Acesse <strong>Settings → Plugins</strong> no Nuvio.</span></li>
+              <li><span class="step-number">2</span><span>Escolha <strong>Add repository URL</strong>.</span></li>
+              <li><span class="step-number">3</span><span>Cole a URL do repositório MirrorStream.</span></li>
+              <li><span class="step-number">4</span><span>Confirme. O plugin estará disponível na sua lista.</span></li>
+            </ol>
+            <button class="copy-bar" type="button" data-copy-repo>
+              <span class="copy-label"><svg class="icon" aria-hidden="true"><use href="#icon-cloud"/></svg>Copie a URL do repositório</span>
+              <svg class="icon" aria-hidden="true"><use href="#icon-copy"/></svg>
+            </button>
+            <p class="status" aria-live="polite" aria-atomic="true"></p>
+          </div>
+        </article>
+
+        <div class="middle-column">
+          <article class="panel">
+            <div class="panel-inner">
+              <div class="panel-heading">
+                <div class="panel-icon"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg></div>
+                <div><h2>Repositório do Plugin</h2><p>Use este endereço ao adicionar uma fonte no Nuvio.</p></div>
+              </div>
+              <div class="url-box">
+                <span class="url-value" data-repo-url>https://mrrobots777.github.io/mirrorstream/</span>
+                <button class="copy-icon" type="button" data-copy-repo aria-label="Copiar URL do repositório" title="Copiar URL"><svg class="icon" aria-hidden="true"><use href="#icon-copy"/></svg></button>
+              </div>
+              <div class="notice">
+                <svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg>
+                <div><strong>Importante</strong><p>Adicione a URL base acima como repositório. Se uma versão antiga estiver em cache, remova e adicione o repositório novamente.</p></div>
+              </div>
+            </div>
+          </article>
+          <article class="panel how-card">
+            <div class="panel-inner">
+              <div class="panel-heading">
+                <div class="panel-icon"><svg class="icon" aria-hidden="true"><use href="#icon-settings"/></svg></div>
+                <div><h2>Como funciona?</h2></div>
+              </div>
+              <p>O MirrorStream reúne fontes em um único plugin. Os resultados são organizados por qualidade e apresentados no Nuvio para você escolher o player.</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="right-column">
+          <article class="panel category-panel" id="conteudo">
+            <div class="panel-inner">
+              <div class="panel-heading">
+                <div class="panel-icon"><svg class="icon"><use href="#icon-film"/></svg></div>
+                <div><h2>Filmes, Séries e Animes</h2><p>Encontre diferentes categorias em um só lugar.</p></div>
+              </div>
+              <div class="category-list">
+                <div class="category-row"><div class="category-art" aria-hidden="true"></div><div class="category-description"><strong>Filmes</strong><span>Lançamentos e clássicos de todos os gêneros.</span></div></div>
+                <div class="category-row"><div class="category-art series" aria-hidden="true"></div><div class="category-description"><strong>Séries</strong><span>Opções para acompanhar suas histórias favoritas.</span></div></div>
+                <div class="category-row"><div class="category-art anime" aria-hidden="true"></div><div class="category-description"><strong>Animes</strong><span>Do clássico ao mais atual, sempre com novas opções.</span></div></div>
+              </div>
+            </div>
+          </article>
+          <article class="panel donation-panel" id="doacao">
+            <div class="panel-inner">
+              <div class="panel-heading">
+                <div class="panel-icon"><svg class="icon"><use href="#icon-heart"/></svg></div>
+                <div><h2>Apoie o MirrorStream</h2></div>
+              </div>
+              <p>Por enquanto, o botão leva à página oficial com as gravações do hino nacional da China.</p>
+              <a class="donate-button" href="https://english.www.gov.cn/archive/chinaabc/202409/01/content_WS66d3ced4c6d0868f4e8ea6bb.html" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#icon-play"/></svg>Ouvir o Hino da China</a>
+              <p class="donation-note">Link temporário · página oficial do governo chinês</p>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
-    <footer><a href="manifest.json">Ver manifesto</a> · <a href="https://github.com/mrrobots777/mirrorstream">Código no GitHub</a></footer>
   </main>
+
+  <footer>
+    <div class="container footer-row">
+      <a class="footer-brand" href="#inicio" aria-label="MirrorStream — voltar ao início">
+        <span class="brand"><svg class="brand-mark" aria-hidden="true"><use href="#icon-bolt"/></svg><span class="brand-word">Mirror<span>Stream</span></span></span>
+        <span><p>Mais que um plugin, uma experiência.</p></span>
+      </a>
+      <nav class="footer-links" aria-label="Navegação do rodapé">
+        <a href="#inicio">Início</a><a href="#instalacao">Instalação</a><a href="#conteudo">Conteúdo</a><a href="#doacao">Doação</a><a href="manifest.json">Manifesto</a>
+      </nav>
+      <div class="footer-icons">
+        <a href="https://github.com/mrrobots777/mirrorstream" aria-label="Projeto no GitHub" title="GitHub"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg></a>
+        <a href="https://github.com/mrrobots777/mirrorstream/issues" aria-label="Contato e suporte" title="Contato e suporte"><svg class="icon" aria-hidden="true"><use href="#icon-mail"/></svg></a>
+        <span class="version">v1.0.0</span>
+      </div>
+    </div>
+  </footer>
+
   <script>
-    function copiar() {
-      const input = document.getElementById("repo");
-      const status = document.getElementById("status");
-      navigator.clipboard.writeText(input.value).then(() => { status.textContent = "URL copiada."; }, () => { input.select(); document.execCommand("copy"); status.textContent = "URL copiada."; });
-    }
+    (() => {
+      const repositoryUrl = "https://mrrobots777.github.io/mirrorstream/";
+      const status = document.querySelector(".status");
+      let statusTimer;
+
+      async function copyRepositoryUrl() {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(repositoryUrl);
+          } else {
+            const temporaryInput = document.createElement("textarea");
+            temporaryInput.value = repositoryUrl;
+            temporaryInput.setAttribute("readonly", "");
+            temporaryInput.style.position = "fixed";
+            temporaryInput.style.opacity = "0";
+            document.body.appendChild(temporaryInput);
+            temporaryInput.select();
+            const copied = document.execCommand("copy");
+            temporaryInput.remove();
+            if (!copied) throw new Error("Não foi possível copiar automaticamente.");
+          }
+          status.textContent = "URL do repositório copiada.";
+        } catch (_) {
+          status.textContent = "Não foi possível copiar. Selecione e copie a URL exibida acima.";
+        }
+        window.clearTimeout(statusTimer);
+        statusTimer = window.setTimeout(() => { status.textContent = ""; }, 4500);
+      }
+
+      document.querySelectorAll("[data-copy-repo]").forEach((button) => {
+        button.addEventListener("click", copyRepositoryUrl);
+      });
+    })();
   </script>
 </body>
 </html>
